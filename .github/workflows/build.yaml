@@ -22,10 +22,10 @@ jobs:
 
       - name: Login to custom registry
         run: |
-          docker login                    \
-            ${{ env.REGISTRY }}           \
-            -u ${{ env.REGISTRY_USER }}   \
-            -p {{ env.REGISTRY_PASSWORD }}
+          docker login                      \
+            -u ${{ env.REGISTRY_USER }}     \
+            -p {{ env.REGISTRY_PASSWORD }}  \
+            ${{ env.REGISTRY }}           
 
       - name: Set up Docker Buildx
         id: buildx
