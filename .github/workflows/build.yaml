@@ -24,7 +24,7 @@ jobs:
         run: |
           docker login                      \
             -u ${{ env.REGISTRY_USER }}     \
-            -p {{ env.REGISTRY_PASSWORD }}  \
+            -p ${{ env.REGISTRY_PASSWORD }}  \
             ${{ env.REGISTRY }}           
 
       - name: Set up Docker Buildx
