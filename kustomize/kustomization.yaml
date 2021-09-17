@@ -1,0 +1,6 @@
+resources:
+  - kube.yaml
+secretGenerator:
+- name: registry-credit
+  envs:
+  - .env.secret

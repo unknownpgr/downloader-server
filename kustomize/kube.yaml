@@ -5,7 +5,7 @@ metadata:
   labels:
     app: downloader
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: downloader
@@ -16,9 +16,11 @@ spec:
     spec:
       containers:
       - name: downloader
-        image: nginx:1.14.2
+        image: registry.server.unknownpgr.com:443/upload-server:latest
         ports:
         - containerPort: 80
+      imagePullSecrets:
+      - name: registry-credit
 ---
 apiVersion: v1
 kind: Service
