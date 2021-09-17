@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU"
+      crossorigin="anonymous"
+    />
+    <title>Download</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 800px;
+        padding: 2rem;
+        margin: 0 auto;
+      }
+
+      .log-download {
+        display: flex;
+        align-items: center;
+      }
+
+      .filename-wrap {
+        flex-grow: 1;
+        overflow: hidden;
+        margin-right: 1rem;
+      }
+
+      .filename {
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .date {
+        white-space: nowrap;
+        width: max-content;
+        color: #888;
+        font-size: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Downloader</h1>
+      <form class="input-group mb-3" onsubmit="downloadURL(event)">
+        <input
+          class="form-control"
+          type="text"
+          id="inputUrl"
+          placeholder="Enter URL"
+        />
+        <input
+          type="submit"
+          class="btn btn-outline-secondary"
+          value="Download"
+        />
+      </form>
+      <hr />
+      <h2>Downloading Files</h2>
+      <ul class="list-group" id="logProcess"></ul>
+      <hr />
+      <h2>Downloaded Files</h2>
+      <ul class="list-group" id="logDownload"></ul>
+    </div>
+    <script>
+      function downloadURL(e) {
+        e.preventDefault();
+        return fetch("/download", {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            url: inputUrl.value,
+          }),
+        });
+      }
+
+      async function getStatus() {
+        return fetch("/status").then((x) => x.json());
+      }
+
+      async function repeat() {
+        const { processingSet, downloaded } = await getStatus();
+        logProcess.innerHTML = processingSet
+          .map((x) => `<li class="log-process list-group-item">${x}</li>`)
+          .join("");
+
+        logDownload.innerHTML = downloaded
+          .map(
+            ({ filename, date }) =>
+              `<li class="log-download list-group-item">
+                  <div class="filename-wrap">
+                    <div class="filename">
+                      ${filename}
+                    </div>
+                  </div>
+                  <div class="date">
+                  ${date}
+                  </div>
+                </li>`
+          )
+          .join("");
+
+        setTimeout(repeat, 2000);
+      }
+      repeat();
+    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
