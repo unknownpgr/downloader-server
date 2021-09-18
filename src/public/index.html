@@ -65,12 +65,17 @@
   <body>
     <div class="container">
       <h1>Downloader</h1>
-      <form class="input-group mb-3" onsubmit="downloadURL(event)">
+      <form
+        class="input-group mb-3"
+        onsubmit="downloadURL(event)"
+        autocomplete="off"
+      >
         <input
           class="form-control"
           type="text"
           id="inputUrl"
           placeholder="Enter URL"
+          autocomplete="off"
         />
         <input
           type="submit"
