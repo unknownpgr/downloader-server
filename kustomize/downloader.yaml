@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: downloader
+spec:
+  capacity:
+    storage: 50Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: /srv/nfs
+    server: 172.30.1.8
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: downloader
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: downloader
+  labels:
+    app: downloader
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: downloader
+  template:
+    metadata:
+      labels:
+        app: downloader
+    spec:
+      volumes:
+      - name: downloader-pv-storage
+        persistentVolumeClaim:
+          claimName: downloader
+      containers:
+      - name: downloader
+        image: registry.server.unknownpgr.com:443/upload-server:a765002c028bc452f8dc3a744ad7e64bd9cc0457@sha256:58973cda5be6036b264056fa235c36c8e84bf696aa974fb503dff3973d205605
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: "/app/download"
+          name: downloader-pv-storage
+      imagePullSecrets:
+      - name: registry-credit
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: downloader
+spec:
+  selector:
+    app: downloader
+  ports:
+    - protocol: TCP
+      port: 80
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: ingress-downloader
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`downloader.server.unknownpgr.com`)
+      services:
+      - name: downloader
+        port: 80
+      middlewares:
+        - name: traefik-basic-auth
+  tls: {}
