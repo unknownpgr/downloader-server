@@ -29,6 +29,12 @@
         align-items: center;
       }
 
+      .list-group-item {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
       .filename-wrap {
         flex-grow: 1;
         overflow: hidden;
@@ -74,9 +80,9 @@
       <ul class="list-group" id="logDownload"></ul>
     </div>
     <script>
-      function downloadURL(e) {
+      async function downloadURL(e) {
         e.preventDefault();
-        return fetch("/download", {
+        await fetch("/download", {
           method: "post",
           headers: {
             "Content-Type": "application/json",
@@ -85,6 +91,7 @@
             url: inputUrl.value,
           }),
         });
+        inputUrl.value = "";
       }
 
       async function getStatus() {
@@ -92,15 +99,16 @@
       }
 
       async function repeat() {
-        const { processingSet, downloaded } = await getStatus();
-        logProcess.innerHTML = processingSet
-          .map((x) => `<li class="log-process list-group-item">${x}</li>`)
-          .join("");
+        try {
+          const { processingSet, downloaded } = await getStatus();
+          logProcess.innerHTML = processingSet
+            .map((x) => `<li class="log-process list-group-item">${x}</li>`)
+            .join("");
 
-        logDownload.innerHTML = downloaded
-          .map(
-            ({ filename, date }) =>
-              `<li class="log-download list-group-item">
+          logDownload.innerHTML = downloaded
+            .map(
+              ({ filename, date }) =>
+                `<li class="log-download list-group-item">
                   <div class="filename-wrap">
                     <div class="filename">
                       ${filename}
@@ -110,9 +118,11 @@
                   ${date}
                   </div>
                 </li>`
-          )
-          .join("");
-
+            )
+            .join("");
+        } catch (e) {
+          console.log(e);
+        }
         setTimeout(repeat, 2000);
       }
       repeat();
