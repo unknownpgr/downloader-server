@@ -12,6 +12,7 @@ const processingSet = new Set();
 const app = express();
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/downloaded', express.static(DOWNLOAD));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
