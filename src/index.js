@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
+const http = require('http');
 
 const PORT = 80;
 const DOWNLOAD = path.join(__dirname, 'download');
@@ -71,8 +72,12 @@ app.get('/status', (req, res) => {
 function downloadUrl(url, dest) {
   return new Promise((resolve, reject) => {
 
+    const { protocol } = new URL(url);
+    const downloadModule = { 'http:': http, 'https:': https }[protocol];
+    if (!downloadModule) reject();
+
     const file = fs.createWriteStream(dest);
-    const req = https.get(url, (res) => {
+    const req = downloadModule.get(url, (res) => {
       res.pipe(file);
       file.on('finish', () => file.close(resolve));
     });
