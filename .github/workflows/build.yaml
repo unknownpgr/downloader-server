@@ -43,12 +43,14 @@ jobs:
         id: build
         env:
           RELEASE_IMAGE: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.RELEASE_REVISION }}
+          LATEST: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
         run: |
           docker buildx create --use
           docker buildx build \
             --cache-from=type=local,src=/tmp/.buildx-cache \
             --cache-to=type=local,dest=/tmp/.buildx-cache-new \
             --tag ${{ env.RELEASE_IMAGE }} \
+            --tag ${{ env.LATEST }} \
             --push \
             .
           rm -rf /tmp/.buildx-cache
