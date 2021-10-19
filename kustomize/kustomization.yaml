@@ -1,7 +1,8 @@
 resources:
   - downloader.yaml
+  - middleware.yaml
 secretGenerator:
-- name: registry-credit
-  type: kubernetes.io/dockerconfigjson
-  envs:
-  - .env.secret
+  - name: registry-credit
+    type: kubernetes.io/dockerconfigjson
+    envs:
+      - .env.secret

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: downloader-middleware
+  labels:
+    app: downloader-middleware
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: downloader-middleware
+  template:
+    metadata:
+      labels:
+        app: downloader-middleware
+    spec:
+      containers:
+        - name: downloader-middleware
+          image: registry.server.unknownpgr.com:443/nginx-http-basic-auth
+          ports:
+            - containerPort: 80
+          env:
+            - name: REDIRECT_TO
+              value: http://downloader
+          volumeMounts:
+            - name: htpasswd
+              mountPath: "/secret"
+              readOnly: true
+      volumes:
+        - name: htpasswd
+          secret:
+            secretName: htpasswd-default
+      imagePullSecrets:
+        - name: registry-credit
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: downloader-middleware
+spec:
+  selector:
+    app: downloader-middleware
+  ports:
+    - protocol: TCP
+      port: 80
