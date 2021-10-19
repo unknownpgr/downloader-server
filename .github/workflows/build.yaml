@@ -1,5 +1,7 @@
 name: Build and Deploy
-on: push
+on:
+  push:
+    branches: [master]
 
 env:
   # Docker image
@@ -7,7 +9,7 @@ env:
   RELEASE_REVISION: "${{ github.sha }}"
   # Docker registry
   REGISTRY: ${{ secrets.REGISTRY }}
-  REGISTRY_USER : ${{ secrets.REGISTRY_USER }}
+  REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
   REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
   # Kubernetes
   KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
@@ -16,7 +18,6 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -25,7 +26,7 @@ jobs:
           docker login                      \
             -u ${{ env.REGISTRY_USER }}     \
             -p ${{ env.REGISTRY_PASSWORD }}  \
-            ${{ env.REGISTRY }}           
+            ${{ env.REGISTRY }}
 
       - name: Set up Docker Buildx
         id: buildx
