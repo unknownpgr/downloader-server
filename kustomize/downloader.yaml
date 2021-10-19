@@ -46,19 +46,19 @@ spec:
         app: downloader
     spec:
       volumes:
-      - name: downloader-pv-storage
-        persistentVolumeClaim:
-          claimName: downloader
+        - name: downloader-pv-storage
+          persistentVolumeClaim:
+            claimName: downloader
       containers:
-      - name: downloader
-        image: registry.server.unknownpgr.com:443/upload-server:a765002c028bc452f8dc3a744ad7e64bd9cc0457@sha256:58973cda5be6036b264056fa235c36c8e84bf696aa974fb503dff3973d205605
-        ports:
-        - containerPort: 80
-        volumeMounts:
-        - mountPath: "/app/download"
-          name: downloader-pv-storage
+        - name: downloader
+          image: registry.server.unknownpgr.com:443/upload-server:a765002c028bc452f8dc3a744ad7e64bd9cc0457@sha256:58973cda5be6036b264056fa235c36c8e84bf696aa974fb503dff3973d205605
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: "/app/download"
+              name: downloader-pv-storage
       imagePullSecrets:
-      - name: registry-credit
+        - name: registry-credit
 ---
 apiVersion: v1
 kind: Service
@@ -82,8 +82,8 @@ spec:
     - kind: Rule
       match: Host(`downloader.server.unknownpgr.com`)
       services:
-      - name: downloader
-        port: 80
+        - name: downloader
+          port: 80
       middlewares:
         - name: traefik-basic-auth
   tls: {}
