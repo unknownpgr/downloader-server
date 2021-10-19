@@ -1,74 +1,35 @@
 const express = require('express');
-const path = require('path');
-const fs = require('fs');
 const https = require('https');
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const morgan = require('morgan');
+const logger = require('./config/winston');
 
+// Constants
+const DIR_DOWNLOAD = path.join(__dirname, 'download');
+const DIR_PUBLIC = path.join(__dirname, 'public');
 const PORT = 80;
-const DOWNLOAD = path.join(__dirname, 'download');
 
+// Variables
 const taskQueue = [];
 const processingSet = new Set();
 
+// Router
 const app = express();
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/downloaded', express.static(DOWNLOAD));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(morgan('common'));
 
-app.post('/download', (req, res) => {
-  if (!req.body.url) {
-    res.status(400).send('No url');
-    return;
-  }
+app.use(express.static(DIR_PUBLIC));
+app.use('/downloaded', express.static(DIR_DOWNLOAD));
 
-  let url = null;
-  try {
-    url = new URL(req.body.url);
-  } catch {
-    res.status(400).send("Wrong url");
-    return;
-  }
+app.use('/api/v1', require('./api/v1')(taskQueue, processingSet, DIR_DOWNLOAD));
 
-  if (!url.protocol) {
-    res.status(400).send('No protocol');
-    return;
-  }
-
-  if (!url.hostname) {
-    res.status(400).send('No host');
-    return;
-  }
-
-  const download = url.protocol + url.hostname + url.pathname + url.search;
-  const filename = path.basename(url.pathname);
-
-  if (processingSet.has(download)) {
-    res.status(400).send('Already processing');
-    return;
-  }
-
-  processingSet.add(download);
-  taskQueue.push([download, filename]);
-
-  res.status(200).send([download, filename]);
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/status', (req, res) => {
-  res.send({
-    processingSet: Array.from(processingSet),
-    downloaded: fs.readdirSync(DOWNLOAD)
-      .map(filename => {
-        const stat = fs.statSync(path.join(DOWNLOAD, filename));
-        return {
-          filename,
-          date: stat.mtime
-        };
-      }).sort((a, b) => new Date(b.date) - new Date(a.date))
-  });
-});
-
+// Worker
 function downloadUrl(url, dest) {
   return new Promise((resolve, reject) => {
 
@@ -92,21 +53,23 @@ function downloadUrl(url, dest) {
       return reject(err);
     });
   });
-}
+};
 
 setInterval(async () => {
   if (taskQueue.length === 0) return;
   const [url, filename] = taskQueue.pop();
 
   let index = 1;
-  let dest = path.join(DOWNLOAD, filename);
+  let dest = path.join(DIR_DOWNLOAD, filename);
   while (fs.existsSync(dest)) {
     const { name, ext } = path.parse(filename);
-    dest = path.join(DOWNLOAD, `${name}_[${index}]${ext}`);
+    dest = path.join(DIR_DOWNLOAD, `${name}_[${index}]${ext}`);
     index += 1;
   }
 
+  logger.info(`Save url ${url} to file ${dest}`);
   await downloadUrl(url, dest);
+  logger.info(`Download finished : ${url}`);
   processingSet.delete(url);
 }, 1000);
 
