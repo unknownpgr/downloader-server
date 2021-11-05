@@ -5,8 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const morgan = require('morgan');
 const logger = require('./config/winston');
-const crypto = require('crypto');
 const mime = require('mime-types');
+const { getFileHash } = require("./libs/utils");
 
 // Constants
 const DIR_DOWNLOAD = path.join(__dirname, 'download');
@@ -57,16 +57,6 @@ function downloadUrl(url, dest) {
   });
 };
 
-function checksumFile(path, hashName = 'sha1') {
-  return new Promise((resolve, reject) => {
-    const hash = crypto.createHash(hashName);
-    const stream = fs.createReadStream(path);
-    stream.on('error', err => reject(err));
-    stream.on('data', chunk => hash.update(chunk));
-    stream.on('end', () => resolve(hash.digest('hex')));
-  });
-}
-
 // Worker
 setInterval(async () => {
   if (taskQueue.length === 0) return;
@@ -83,7 +73,7 @@ setInterval(async () => {
 
     logger.info(`Save url ${url} to file ${dest}`);
     const { contentType } = await downloadUrl(url, dest);
-    const fileHash = await checksumFile(dest);
+    const fileHash = await getFileHash(dest);
     const ext = mime.extension(contentType);
     fs.renameSync(dest, path.join(DIR_DOWNLOAD, `${fileHash}.${ext}`));
 

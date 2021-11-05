@@ -3,17 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const logger = require('../../config/winston');
 const FileType = require('file-type');
-const crypto = require('crypto');
-
-function checksumFile(path, hashName = 'sha1') {
-  return new Promise((resolve, reject) => {
-    const hash = crypto.createHash(hashName);
-    const stream = fs.createReadStream(path);
-    stream.on('error', err => reject(err));
-    stream.on('data', chunk => hash.update(chunk));
-    stream.on('end', () => resolve(hash.digest('hex')));
-  });
-}
+const { getFileHash } = require("../../libs/utils");
 
 function error(res, message, code = 400) {
   logger.error(message);
@@ -87,7 +77,7 @@ function v1(taskQueue, processingSet, saveDir) {
       .filter(x => !x.match(shaRegex))
       .map(async (filename) => {
         const origin = path.join(saveDir, filename);
-        const fileHash = await checksumFile(origin);
+        const fileHash = await getFileHash(origin);
         const fileType = await FileType.fromFile(origin);
         let ext = 'html';
         if (fileType) ext = fileType.ext;
