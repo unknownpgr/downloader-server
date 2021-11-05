@@ -34,7 +34,7 @@ function App() {
   }
 
   return (
-    <div className="App">
+    <div className="app">
       <Container>
         <h1>Downloader</h1>
         <InputGroup>
@@ -50,13 +50,17 @@ function App() {
             Download
           </Button>
         </InputGroup>
-        <hr />
-        <h2>Downloading Files</h2>
-        <ListGroup>
-          {processing.map((x) => (
-            <ListGroupItem key={x}>{x}</ListGroupItem>
-          ))}
-        </ListGroup>
+        {processing.length > 0 && (
+          <>
+            <hr />
+            <h2>Downloading Files</h2>
+            <ListGroup>
+              {processing.map((x) => (
+                <ListGroupItem key={x}>{x}</ListGroupItem>
+              ))}
+            </ListGroup>
+          </>
+        )}
         <hr />
         <h2>Downloaded Files</h2>
         <ListGroup>
@@ -73,6 +77,11 @@ function App() {
             );
           })}
         </ListGroup>
+        <div className="mt-4 d-flex justify-content-center">
+          <Button variant="outline-secondary" onClick={API.updateFiles}>
+            Update
+          </Button>
+        </div>
       </Container>
     </div>
   );

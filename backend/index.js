@@ -6,6 +6,7 @@ const path = require('path');
 const morgan = require('morgan');
 const logger = require('./config/winston');
 const crypto = require('crypto');
+const mime = require('mime-types');
 
 // Constants
 const DIR_DOWNLOAD = path.join(__dirname, 'download');
@@ -39,17 +40,18 @@ function downloadUrl(url, dest) {
 
     const file = fs.createWriteStream(dest);
     const req = downloadModule.get(url, (res) => {
+      const contentType = res.headers['content-type'];
       res.pipe(file);
-      file.on('finish', () => file.close(resolve));
+      file.on('finish', () => file.close(() => resolve({ url, dest, contentType })));
     });
 
     req.on('error', (err) => {
-      fs.unlink(dest);
+      fs.unlink(dest, (err) => err && reject(err));
       reject(err);
     });
 
     file.on('error', (err) => {
-      fs.unlink(dest);
+      fs.unlink(dest, (err) => err && reject(err));
       return reject(err);
     });
   });
@@ -70,20 +72,26 @@ setInterval(async () => {
   if (taskQueue.length === 0) return;
   const [url, filename] = taskQueue.pop();
 
-  let index = 1;
-  let dest = path.join(DIR_DOWNLOAD, filename);
-  while (fs.existsSync(dest)) {
-    const { name, ext } = path.parse(filename);
-    dest = path.join(DIR_DOWNLOAD, `${name}_[${index}]${ext}`);
-    index += 1;
+  try {
+    let index = 1;
+    let dest = path.join(DIR_DOWNLOAD, filename);
+    while (fs.existsSync(dest)) {
+      const { name, ext } = path.parse(filename);
+      dest = path.join(DIR_DOWNLOAD, `${name}_[${index}]${ext}`);
+      index += 1;
+    }
+
+    logger.info(`Save url ${url} to file ${dest}`);
+    const { contentType } = await downloadUrl(url, dest);
+    const fileHash = await checksumFile(dest);
+    const ext = mime.extension(contentType);
+    fs.renameSync(dest, path.join(DIR_DOWNLOAD, `${fileHash}.${ext}`));
+
+    logger.info(`Download finished : ${url}`);
+  } catch (e) {
+    console.error(e);
   }
 
-  logger.info(`Save url ${url} to file ${dest}`);
-  await downloadUrl(url, dest);
-  const fileHash = await checksumFile(dest);
-  fs.renameSync(dest, path.join(DIR_DOWNLOAD, fileHash));
-
-  logger.info(`Download finished : ${url}`);
   processingSet.delete(url);
 }, 1000);
 

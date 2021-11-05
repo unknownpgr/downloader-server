@@ -8,7 +8,8 @@ const post = (path, data) => fetch(path, {
 });
 const postDownload = (url) => post('/api/v1/download', { url });
 const getStatus = () => get('/api/v1/status');
+const updateFiles = () => get('/api/v1/update');
 
-const API = { get, post, postDownload, getStatus };
+const API = { get, post, postDownload, getStatus, updateFiles };
 
 export default API;

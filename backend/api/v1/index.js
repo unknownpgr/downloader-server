@@ -2,6 +2,18 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const logger = require('../../config/winston');
+const FileType = require('file-type');
+const crypto = require('crypto');
+
+function checksumFile(path, hashName = 'sha1') {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash(hashName);
+    const stream = fs.createReadStream(path);
+    stream.on('error', err => reject(err));
+    stream.on('data', chunk => hash.update(chunk));
+    stream.on('end', () => resolve(hash.digest('hex')));
+  });
+}
 
 function error(res, message, code = 400) {
   logger.error(message);
@@ -69,6 +81,22 @@ function v1(taskQueue, processingSet, saveDir) {
     });
   });
 
+  app.get('/update', async (req, res) => {
+    const shaRegex = /\b([a-f0-9]{40})\..+\b/;
+    const update = fs.readdirSync(saveDir)
+      .filter(x => !x.match(shaRegex))
+      .map(async (filename) => {
+        const origin = path.join(saveDir, filename);
+        const fileHash = await checksumFile(origin);
+        const fileType = await FileType.fromFile(origin);
+        let ext = 'html';
+        if (fileType) ext = fileType.ext;
+        const updated = path.join(saveDir, `${fileHash}.${ext}`);
+        fs.renameSync(origin, updated);
+        return { origin, updated };
+      });
+    res.send(await Promise.all(update));
+  });
 
   return app;
 }
