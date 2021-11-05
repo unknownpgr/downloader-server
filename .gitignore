@@ -3,3 +3,4 @@ docker.sh
 download
 .env*
 logs
+docker-compose.yaml
