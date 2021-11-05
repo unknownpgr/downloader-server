@@ -13,5 +13,6 @@ COPY ./frontend/yarn.lock ./
 RUN yarn --prod
 COPY --from=frontend /app/build ./public
 COPY ./backend ./
+RUN mkdir download
 CMD [ "node", "index.js" ]
 EXPOSE 80
