@@ -3,5 +3,5 @@ resources:
 secretGenerator:
   - name: registry-credit
     type: kubernetes.io/dockerconfigjson
-    envs:
-      - .env.secret
+    files:
+      - .dockerconfigjson

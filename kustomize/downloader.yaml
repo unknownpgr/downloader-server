@@ -51,12 +51,13 @@ spec:
             claimName: downloader
       containers:
         - name: downloader
-          image: registry.server.unknownpgr.com:443/upload-server:a765002c028bc452f8dc3a744ad7e64bd9cc0457@sha256:58973cda5be6036b264056fa235c36c8e84bf696aa974fb503dff3973d205605
+          image: se.ction.link/upload-server
           ports:
             - containerPort: 80
           volumeMounts:
             - mountPath: "/app/download"
               name: downloader-pv-storage
+          imagePullPolicy: Always
       imagePullSecrets:
         - name: registry-credit
 ---
