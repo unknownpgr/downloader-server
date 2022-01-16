@@ -58,16 +58,27 @@ function v1(taskQueue, processingSet, saveDir) {
   });
 
   app.get('/status', (req, res) => {
+
+    let downloaded = fs.readdirSync(saveDir)
+      .map(filename => {
+        const stat = fs.statSync(path.join(saveDir, filename));
+        return {
+          filename,
+          date: stat.mtime
+        };
+      }).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    let { offset, limit } = req.query;
+    offset = +offset;
+    limit = +limit;
+    const start = offset ? Math.min(offset, downloaded.length) : 0;
+    const end = limit ? Math.min(start + limit, downloaded.length) : Math.min(start + 10, downloaded.length);
+
+    downloaded = downloaded.slice(start, end);
+
     res.send({
       processing: Array.from(processingSet),
-      downloaded: fs.readdirSync(saveDir)
-        .map(filename => {
-          const stat = fs.statSync(path.join(saveDir, filename));
-          return {
-            filename,
-            date: stat.mtime
-          };
-        }).sort((a, b) => new Date(b.date) - new Date(a.date))
+      downloaded
     });
   });
 
