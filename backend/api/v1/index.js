@@ -58,7 +58,7 @@ function v1(taskQueue, processingSet, saveDir) {
   });
 
   app.get("/status", (req, res) => {
-    let downloaded = fs
+    let files = fs
       .readdirSync(saveDir)
       .map((filename) => {
         const stat = fs.statSync(path.join(saveDir, filename));
@@ -72,17 +72,17 @@ function v1(taskQueue, processingSet, saveDir) {
     let { offset, limit } = req.query;
     offset = +offset;
     limit = +limit;
-    const start = offset ? Math.min(offset, downloaded.length) : 0;
+    const start = offset ? Math.min(offset, files.length) : 0;
     const end = limit
-      ? Math.min(start + limit, downloaded.length)
-      : Math.min(start + 10, downloaded.length);
+      ? Math.min(start + limit, files.length)
+      : Math.min(start + 10, files.length);
 
-    downloaded = downloaded.slice(start, end);
+    const downloaded = files.slice(start, end);
 
     res.send({
       processing: Array.from(processingSet),
       downloaded,
-      totalCount: downloaded.length,
+      totalCount: files.length,
     });
   });
 
