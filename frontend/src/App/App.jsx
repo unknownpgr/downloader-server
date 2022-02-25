@@ -1,32 +1,42 @@
-import { useEffect, useState } from "react";
 import "./App.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
+
 import {
+  Button,
   Container,
   FormControl,
   InputGroup,
-  Button,
   ListGroup,
   ListGroupItem,
 } from "react-bootstrap";
+import { useEffect, useState } from "react";
+
 import API from "../API/api";
+import { Pages } from "../Pagination/Pagination";
+
+const N = 10;
 
 function App() {
   const [url, setUrl] = useState("");
-  const [status, setStatus] = useState({ processing: [], downloaded: [] });
-  const { processing, downloaded } = status;
+  const [status, setStatus] = useState({
+    processing: [],
+    downloaded: [],
+    totalCount: 0,
+  });
+  const [page, setPage] = useState(1);
+  const { processing, downloaded, totalCount } = status;
+  const pageMax = Math.ceil(totalCount / N);
 
   useEffect(() => {
     const handleCheck = async () => {
-      const status = await API.getStatus();
+      const status = await API.getStatus({ offset: (page - 1) * N });
       setStatus(status);
     };
 
     handleCheck();
-
     const intervalId = setInterval(handleCheck, 1000);
     return () => clearInterval(intervalId);
-  }, []);
+  }, [page]);
 
   function handleDownload() {
     API.postDownload(url);
@@ -63,6 +73,7 @@ function App() {
         )}
         <hr />
         <h2>Downloaded Files</h2>
+        <Pages max={pageMax} value={page} onChange={setPage} />
         <ListGroup>
           {downloaded.map(({ filename, date }) => {
             return (
@@ -77,6 +88,7 @@ function App() {
             );
           })}
         </ListGroup>
+        <Pages max={pageMax} value={page} onChange={setPage} />
         <div className="mt-4 d-flex justify-content-center">
           <Button variant="outline-secondary" onClick={API.updateFiles}>
             Update
