@@ -6,3 +6,4 @@ logs
 docker-compose.yaml
 .dockerconfigjson
 kustomize/kustomization.yaml
+kustomize/users
