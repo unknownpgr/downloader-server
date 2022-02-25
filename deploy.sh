@@ -9,6 +9,6 @@ docker push $IMAGE
 cat kustomize/kustomization.template.yaml\
   | sed "s|NAME|$NAME|"\
   | sed "s|TAG|$TAG|"\
-  > kubernetes/kustomization.yaml
+  > kustomize/kustomization.yaml
 
 kubectl apply -k kustomize
