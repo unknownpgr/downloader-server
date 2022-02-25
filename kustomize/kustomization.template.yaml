@@ -5,3 +5,7 @@ secretGenerator:
     type: kubernetes.io/dockerconfigjson
     files:
       - .dockerconfigjson
+images:
+  - name: upload-server
+    newName: NAME
+    newTag: TAG

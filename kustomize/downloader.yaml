@@ -51,7 +51,7 @@ spec:
             claimName: downloader
       containers:
         - name: downloader
-          image: se.ction.link/upload-server
+          image: upload-server
           ports:
             - containerPort: 80
           volumeMounts:
