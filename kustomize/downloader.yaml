@@ -8,6 +8,7 @@ spec:
   storageClassName: local-storage
   claimRef:
     name: upload-server-files
+    namespace: upload-server
   capacity:
     storage: 50Gi
   volumeMode: Filesystem
@@ -92,7 +93,7 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`downloader.server.unknownpgr.com`)
+      match: Host(`downloader.unknownpgr.com`)
       services:
         - name: upload-server
           port: 80
