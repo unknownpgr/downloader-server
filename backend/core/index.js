@@ -3,16 +3,15 @@ const https = require("https");
 const http = require("http");
 const fs = require("fs");
 const crypto = require("crypto");
+const mime = require("mime-types");
+const FileType = require("file-type");
 
-const DIR_DOWNLOAD = path.join(__dirname, "download");
-const DIR_PUBLIC = path.join(__dirname, "public");
-
-function getDownloadedFileName(filename) {
+function getDownloadedFileName(filename, directory) {
   let index = 1;
-  let dest = path.join(DIR_DOWNLOAD, filename);
+  let dest = path.join(directory, filename);
   while (fs.existsSync(dest)) {
     const { name, ext } = path.parse(filename);
-    dest = path.join(DIR_DOWNLOAD, `${name}_[${index}]${ext}`);
+    dest = path.join(directory, `${name}_[${index}]${ext}`);
     index += 1;
   }
   return dest;
@@ -74,17 +73,19 @@ function parseURL(url) {
 class Downloader {
   queue = [];
   current = null;
+  directory = "";
 
-  constructor() {
+  constructor(directory) {
+    this.directory = directory;
     setInterval(() => {
       this.processQueue();
     }, 1000);
   }
 
   add(url) {
-    const [download, filename] = parseURL(url);
-    this.queue.push([download, filename]);
-    return [download, filename];
+    const [parsedURL, filename] = parseURL(url);
+    this.queue.push([parsedURL, filename]);
+    return [parsedURL, filename];
   }
 
   async processQueue() {
@@ -110,6 +111,48 @@ class Downloader {
 
   getCurrent() {
     return this.current;
+  }
+
+  listFiles(offset, limit) {
+    offset = +offset;
+    limit = +limit;
+
+    offset = offset ? Math.min(offset, files.length) : 0;
+    limit = limit ? Math.min(limit, files.length - offset, 100) : offset + 10;
+
+    const files = fs
+      .readdirSync(this.directory)
+      .map((filename) => {
+        const stat = fs.statSync(path.join(this.directory, filename));
+        return {
+          filename,
+          date: stat.mtime,
+        };
+      })
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const totalCount = files.length;
+    const downloaded = files.slice(offset, offset + limit);
+
+    return { totalCount, downloaded };
+  }
+
+  updateWrongNamedFiles() {
+    const shaRegex = /\b([a-f0-9]{40})\..+\b/; // sha1 hash
+    const update = fs
+      .readdirSync(this.directory)
+      .filter((x) => !x.match(shaRegex))
+      .map(async (filename) => {
+        const originalFilename = path.join(this.directory, filename);
+        const fileHash = await getFileHash(originalFilename);
+        const fileType = await FileType.fromFile(originalFilename);
+        let ext = "html";
+        if (fileType) ext = fileType.ext;
+        const updatedFilename = path.join(this.directory, `${fileHash}.${ext}`);
+        fs.renameSync(originalFilename, updatedFilename);
+        return { originalFilename, updatedFilename };
+      });
+    return Promise.all(update);
   }
 }
 
