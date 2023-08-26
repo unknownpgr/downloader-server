@@ -13,8 +13,8 @@ import {
 } from "react-bootstrap";
 import { useCallback, useEffect, useState } from "react";
 
-import API from "../API/api";
-import { Pages } from "../Pagination/Pagination";
+import API from "../api";
+import { Pages } from "../Pagination";
 
 const N = 10;
 

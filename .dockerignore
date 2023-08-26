@@ -1,4 +1,5 @@
-**/backend/download
-**/frontend/build
+backend/download
+frontend/build
 **/node_modules
 **/.git
+backend/public
