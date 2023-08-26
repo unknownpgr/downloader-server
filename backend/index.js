@@ -1,89 +1,47 @@
-const express = require('express');
-const https = require('https');
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const morgan = require('morgan');
-const logger = require('./config/winston');
-const mime = require('mime-types');
-const { getFileHash } = require("./libs/utils");
+const express = require("express");
+const Downloader = require("./core");
 
 // Constants
-const DIR_DOWNLOAD = path.join(__dirname, 'download');
-const DIR_PUBLIC = path.join(__dirname, 'public');
+const DIR_DOWNLOAD = path.join(__dirname, "download");
+const DIR_PUBLIC = path.join(__dirname, "public");
 const PORT = 80;
 
-// Variables
-const taskQueue = [];
-const processingSet = new Set();
+// Downloader
+const downloader = new Downloader(DIR_DOWNLOAD);
 
 // Router
 const app = express();
 
-app.use(morgan('common'));
-
 app.use(express.static(DIR_PUBLIC));
-app.use('/downloaded', express.static(DIR_DOWNLOAD));
+app.use("/downloaded", express.static(DIR_DOWNLOAD));
 
-app.use('/api/v1', require('./api/v1')(taskQueue, processingSet, DIR_DOWNLOAD));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+app.post("/download", (req, res) => {
+  try {
+    const [parsedURL, filename] = downloader.add(req.body.url);
+    res.status(200).send([parsedURL, filename]);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
 });
 
-function downloadUrl(url, dest) {
-  return new Promise((resolve, reject) => {
+app.get("/status", (req, res) => {
+  let { offset, limit } = req.query;
 
-    const { protocol } = new URL(url);
-    const downloadModule = { 'http:': http, 'https:': https }[protocol];
-    if (!downloadModule) reject();
+  const queue = downloader.getQueue();
+  const current = downloader.getCurrent();
+  const files = downloader.listFiles(offset, limit);
 
-    const file = fs.createWriteStream(dest);
-    const req = downloadModule.get(url, (res) => {
-      const contentType = res.headers['content-type'];
-      res.pipe(file);
-      file.on('finish', () => file.close(() => resolve({ url, dest, contentType })));
-    });
+  res.status(200).send({ queue, current, files });
+});
 
-    req.on('error', (err) => {
-      fs.unlink(dest, (err) => err && reject(err));
-      reject(err);
-    });
+app.get("/update", async (req, res) => {
+  const result = await downloader.updateWrongNamedFiles();
+  res.status(200).send(result);
+});
 
-    file.on('error', (err) => {
-      fs.unlink(dest, (err) => err && reject(err));
-      return reject(err);
-    });
-  });
-};
-
-// Worker
-setInterval(async () => {
-  if (taskQueue.length === 0) return;
-  const [url, filename] = taskQueue.pop();
-
-  try {
-    let index = 1;
-    let dest = path.join(DIR_DOWNLOAD, filename);
-    while (fs.existsSync(dest)) {
-      const { name, ext } = path.parse(filename);
-      dest = path.join(DIR_DOWNLOAD, `${name}_[${index}]${ext}`);
-      index += 1;
-    }
-
-    logger.info(`Save url ${url} to file ${dest}`);
-    const { contentType } = await downloadUrl(url, dest);
-    const fileHash = await getFileHash(dest);
-    const ext = mime.extension(contentType);
-    fs.renameSync(dest, path.join(DIR_DOWNLOAD, `${fileHash}.${ext}`));
-
-    logger.info(`Download finished : ${url}`);
-  } catch (e) {
-    console.error(e);
-  }
-
-  processingSet.delete(url);
-}, 1000);
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 app.listen(PORT, () => {
   console.log(`Server opened at port ${PORT}`);
