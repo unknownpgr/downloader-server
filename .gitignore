@@ -7,3 +7,5 @@ docker-compose.yaml
 .dockerconfigjson
 kustomize/kustomization.yaml
 kustomize/users
+backend/public
+scripts/kubeconfig
