@@ -93,11 +93,11 @@ class Downloader {
     const [url, filename] = this.queue.shift();
     this.current = { url, filename };
     try {
-      const dest = getDownloadedFileName(filename);
+      const dest = getDownloadedFileName(filename, this.directory);
       const { contentType } = await downloadUrl(url, dest);
       const fileHash = await getFileHash(dest);
       const ext = mime.extension(contentType);
-      fs.renameSync(dest, path.join(DIR_DOWNLOAD, `${fileHash}.${ext}`));
+      fs.renameSync(dest, path.join(this.directory, `${fileHash}.${ext}`));
     } catch (err) {
       console.log(err);
     } finally {

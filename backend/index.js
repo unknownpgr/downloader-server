@@ -15,6 +15,8 @@ const app = express();
 
 app.use(express.static(DIR_PUBLIC));
 app.use("/downloaded", express.static(DIR_DOWNLOAD));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.post("/download", (req, res) => {
   try {
