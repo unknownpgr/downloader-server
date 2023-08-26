@@ -174,6 +174,8 @@ function App() {
                     style={{
                       filter: isBlurThumbnail ? "blur(10px)" : "none",
                       transition: "all 0.5s",
+                      height: "200px",
+                      objectFit: "scale-down",
                     }}
                     onError={(e) => {
                       e.target.onerror = null;
