@@ -1,4 +1,3 @@
-import "./App.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import {
@@ -19,12 +18,17 @@ const N = 10;
 function App() {
   const [url, setUrl] = useState("");
   const [status, setStatus] = useState({
-    processing: [],
-    downloaded: [],
-    totalCount: 0,
+    queue:[],
+    current:null,
+    files:{
+      downloaded:[],
+      totalCount:0,
+    },
   });
   const [page, setPage] = useState(1);
-  const { processing, downloaded, totalCount } = status;
+
+  const { queue, current, files } = status;
+  const  { downloaded, totalCount } = files;
   const pageMax = Math.ceil(totalCount / N);
 
   useEffect(() => {
@@ -60,12 +64,12 @@ function App() {
             Download
           </Button>
         </InputGroup>
-        {processing.length > 0 && (
+        {queue.length > 0 && (
           <>
             <hr />
             <h2>Downloading Files</h2>
             <ListGroup>
-              {processing.map((x) => (
+              {queue.map((x) => (
                 <ListGroupItem key={x}>{x}</ListGroupItem>
               ))}
             </ListGroup>

@@ -8,9 +8,9 @@ const post = (path, data) =>
     },
     body: JSON.stringify(data),
   });
-const postDownload = (url) => post("/api/v1/download", { url });
-const getStatus = (option) => get("/api/v1/status", option);
-const updateFiles = () => get("/api/v1/update");
+const postDownload = (url) => post("/download", { url });
+const getStatus = (option) => get("/status", option);
+const updateFiles = () => get("/update");
 
 const API = { get, post, postDownload, getStatus, updateFiles };
 
