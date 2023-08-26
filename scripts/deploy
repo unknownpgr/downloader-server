@@ -6,6 +6,9 @@ cd $(dirname $0)/..
 TAG=$(git rev-parse --verify HEAD)
 NAME=se.ction.link/upload-server
 IMAGE=$NAME:$TAG
+
+echo "Deploying $IMAGE"
+
 docker build -t $IMAGE .
 docker push $IMAGE
 
