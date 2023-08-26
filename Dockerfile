@@ -7,9 +7,11 @@ COPY ./frontend ./
 RUN yarn build
 
 FROM node:14
+RUN apt update
+RUN apt install -y ffmpeg
 WORKDIR /app
 COPY ./backend/package.json ./
-COPY ./frontend/yarn.lock ./
+COPY ./backend/yarn.lock ./
 RUN yarn --prod
 COPY --from=frontend /app/build ./public
 COPY ./backend ./
