@@ -5,6 +5,8 @@ const fs = require("fs");
 const crypto = require("crypto");
 const mime = require("mime-types");
 const FileType = require("file-type");
+const util = require("util");
+const exec = util.promisify(require("child_process").exec);
 
 function getDownloadedFileName(filename, directory) {
   let index = 1;
@@ -68,6 +70,40 @@ function parseURL(url) {
     urlObj.protocol + urlObj.hostname + urlObj.pathname + urlObj.search;
   const filename = path.basename(urlObj.pathname);
   return [parsedUrl, filename];
+}
+
+function getThumbnailPath(originalFilename) {
+  const { name, ext } = path.parse(originalFilename);
+  return path.join("/tmp", `${name}.thumbnail.png`);
+}
+
+function isFileExists(filepath) {
+  try {
+    if (fs.existsSync(filepath)) return true;
+  } catch {}
+  return false;
+}
+
+async function createThumbnailImage(filepath) {
+  // Check if thumbnail is already created
+  const thumbnailPath = getThumbnailPath(filepath);
+  if (isFileExists(thumbnailPath)) return thumbnailPath;
+
+  // Check if file is valid video / image
+  const fileType = await FileType.fromFile(filepath);
+  if (!fileType) throw new Error("File is not valid");
+  if (!["video", "image"].includes(fileType.mime.split("/")[0]))
+    throw new Error("File is not valid");
+
+  const { stdout, stderr } = await exec(
+    `ffmpeg -i ${filepath} -ss 00:00:00.000 -vframes 1 ${thumbnailPath}`
+  );
+  console.log("stdout:", stdout);
+  console.log("stderr:", stderr);
+
+  // Check if thumbnail is created
+  if (!isFileExists(thumbnailPath)) throw new Error("Thumbnail not created");
+  return thumbnailPath;
 }
 
 class Downloader {
@@ -155,6 +191,12 @@ class Downloader {
         return { originalFilename, updatedFilename };
       });
     return Promise.all(update);
+  }
+
+  async getThumbnail(filename) {
+    const filepath = path.join(this.directory, filename);
+    const thumbnailPath = await createThumbnailImage(filepath);
+    return thumbnailPath;
   }
 }
 

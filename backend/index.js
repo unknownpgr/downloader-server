@@ -1,6 +1,7 @@
 const express = require("express");
 const Downloader = require("./core");
 const path = require("path");
+const morgan = require("morgan");
 
 // Constants
 const DIR_DOWNLOAD = path.join(__dirname, "download");
@@ -13,6 +14,7 @@ const downloader = new Downloader(DIR_DOWNLOAD);
 // Router
 const app = express();
 
+app.use(morgan("dev"));
 app.use(express.static(DIR_PUBLIC));
 app.use("/downloaded", express.static(DIR_DOWNLOAD));
 app.use(express.json());
@@ -40,6 +42,16 @@ app.get("/status", (req, res) => {
 app.get("/update", async (req, res) => {
   const result = await downloader.updateWrongNamedFiles();
   res.status(200).send(result);
+});
+
+app.get("/thumbnail/:filename", async (req, res) => {
+  const { filename } = req.params;
+  try {
+    const thumbnail = await downloader.getThumbnail(filename);
+    res.sendFile(thumbnail);
+  } catch (err) {
+    res.status(404).send(err.message);
+  }
 });
 
 app.get("*", (req, res) => {
