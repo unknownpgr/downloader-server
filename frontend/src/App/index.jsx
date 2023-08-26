@@ -88,6 +88,7 @@ function App() {
   });
   const [page, setPage] = useState(1);
   const [currentFile, setCurrentFile] = useState(null);
+  const [isBlurThumbnail, setIsBlurThumbnail] = useState(true);
   const load = useCallback(async () => {
     const status = await API.getStatus({ offset: (page - 1) * N });
     setStatus(status);
@@ -150,6 +151,14 @@ function App() {
         )}
         <hr />
         <h2>Downloaded Files</h2>
+        <div className="d-flex justify-content-end">
+          <Button
+            variant={isBlurThumbnail ? "outline-secondary" : "outline-primary"}
+            onClick={() => setIsBlurThumbnail((x) => !x)}
+          >
+            {isBlurThumbnail ? "Show" : "Hide"} thumbnail
+          </Button>
+        </div>
         <Pages max={pageMax} value={page} onChange={setPage} />
         <Row xs={1} md={2} className="g-4">
           {downloaded.map(({ filename, date }) => {
@@ -162,6 +171,10 @@ function App() {
                   <Card.Img
                     variant="top"
                     src={`/thumbnail/${filename}`}
+                    style={{
+                      filter: isBlurThumbnail ? "blur(10px)" : "none",
+                      transition: "all 0.5s",
+                    }}
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = "/error.png";
