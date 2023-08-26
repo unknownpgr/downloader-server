@@ -114,12 +114,7 @@ class Downloader {
   }
 
   listFiles(offset, limit) {
-    offset = +offset;
-    limit = +limit;
-
-    offset = offset ? Math.min(offset, files.length) : 0;
-    limit = limit ? Math.min(limit, files.length - offset, 100) : offset + 10;
-
+    // List files in directory
     const files = fs
       .readdirSync(this.directory)
       .map((filename) => {
@@ -130,6 +125,13 @@ class Downloader {
         };
       })
       .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Slice files
+    offset = +offset;
+    limit = +limit;
+
+    offset = offset ? Math.min(offset, files.length) : 0;
+    limit = limit ? Math.min(limit, files.length - offset, 100) : offset + 10;
 
     const totalCount = files.length;
     const downloaded = files.slice(offset, offset + limit);
