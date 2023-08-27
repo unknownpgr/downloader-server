@@ -1,57 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import API from "../api";
 import { Pages } from "../Pagination";
+import { Link } from "react-router-dom"
 
 const N = 10;
-
-function Viewer({ src, onClose }: { src: string; onClose: () => void }
-) {
-  let viewerComponent: JSX.Element | null = null;
-
-  if (src.endsWith(".mp4")) {
-    viewerComponent = (
-      <video
-        src={src}
-        style={{
-          maxWidth: "100%",
-          maxHeight: "100%",
-        }}
-        controls
-        autoPlay
-      ></video>
-    );
-  } else if (src.endsWith(".jpg") || src.endsWith(".png")) {
-    viewerComponent = (
-      <img
-        src={src}
-        alt="img"
-        style={{
-          maxWidth: "100%",
-          maxHeight: "100%",
-        }}
-      />
-    );
-  } else {
-    viewerComponent = <div
-      className="max-s-lg bg-white p-4 rounded-lg shadow-lg"
-    >Not supported file type {" "}
-      <code>{src.split(".").pop()}</code>.
-    </div>;
-  }
-
-  return (
-    <div
-      className="w-full h-full flex justify-center items-center bg-black bg-opacity-50 fixed top-0 left-0 z-50"
-      onClick={onClose}
-    >
-      <div
-        className="max-w-full-md max-h-full"
-      >
-        {viewerComponent}
-      </div>
-    </div>
-  );
-}
 
 function App() {
   const [url, setUrl] = useState("");
@@ -63,7 +15,6 @@ function App() {
     },
   });
   const [page, setPage] = useState(1);
-  const [currentFile, setCurrentFile] = useState<null | string>(null);
   const [isBlurThumbnail, setIsBlurThumbnail] = useState(true);
   const load = useCallback(async () => {
     const status = await API.getStatus({ offset: (page - 1) * N });
@@ -90,10 +41,6 @@ function App() {
     API.postDownload(url);
     setUrl("");
     load();
-  }
-
-  function handleCardClick(filename: string) {
-    setCurrentFile(`/api/downloaded/${filename}`);
   }
 
   async function handleUpdate() {
@@ -148,13 +95,10 @@ function App() {
       <div className="flex flex-row flex-wrap gap-4 justify-around">
         {downloaded.map(({ filename, date }) => {
           return (
-            <div
-              key={filename}
-              className="w-64 border rounded"
-            >
+            <Link to={`/viewer/${filename}`}>
               <div
-                style={{ cursor: "pointer", overflow: "hidden" }}
-                onClick={() => handleCardClick(filename)}
+                key={filename}
+                className="w-64 border rounded"
               >
                 <div
                   className="bg-gray-200 h-52 flex justify-center"
@@ -180,7 +124,7 @@ function App() {
                 </div>
                 <div className="font-medium text-center p-2">{date}</div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
@@ -192,9 +136,6 @@ function App() {
           Update
         </button>
       </div>
-      {currentFile && (
-        <Viewer src={currentFile} onClose={() => setCurrentFile(null)} />
-      )}
     </div>
   );
 }
