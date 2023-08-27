@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import API from "../api";
 import { Pages } from "../Pagination";
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 
 const N = 10;
 
@@ -14,8 +14,10 @@ function App() {
       totalCount: 0,
     },
   });
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isBlurThumbnail, setIsBlurThumbnail] = useState(true);
+  const page = Number(searchParams.get("page")) || 1;
+  const setPage = (page: number) => { setSearchParams({ page: String(page) }); };
   const load = useCallback(async () => {
     const status = await API.getStatus({ offset: (page - 1) * N });
     setStatus(status);
