@@ -5,8 +5,7 @@ download
 logs
 docker-compose.yaml
 .dockerconfigjson
-kustomize/kustomization.yaml
-kustomize/users
+kustomize
 backend/public
-scripts
+scripts/*
 !scripts/init.sh

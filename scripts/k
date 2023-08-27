@@ -1,3 +1,0 @@
-#!/bin/bash
-KUBECONFIG=`dirname $0`/kubeconfig
-kubectl --kubeconfig=$KUBECONFIG $@
