@@ -168,7 +168,7 @@ class Downloader {
     limit = +limit;
 
     offset = offset ? Math.min(offset, files.length) : 0;
-    limit = limit ? Math.min(limit, files.length - offset, 100) : offset + 10;
+    limit = limit ? Math.min(limit, files.length - offset, 100) : 10;
 
     const totalCount = files.length;
     const downloaded = files.slice(offset, offset + limit);
