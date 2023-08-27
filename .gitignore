@@ -8,4 +8,5 @@ docker-compose.yaml
 kustomize/kustomization.yaml
 kustomize/users
 backend/public
-scripts/kubeconfig
+scripts
+!scripts/init.sh

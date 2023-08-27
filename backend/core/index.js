@@ -95,6 +95,7 @@ async function createThumbnailImage(filepath) {
   if (!["video", "image"].includes(fileType.mime.split("/")[0]))
     throw new Error("File is not valid");
 
+  // Create thumbnail
   const { stdout, stderr } = await exec(
     `ffmpeg -i ${filepath} -ss 00:00:00.000 -vframes 1 -filter:v scale='min(280\\,iw):-1' ${thumbnailPath}`
   );
