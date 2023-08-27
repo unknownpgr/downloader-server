@@ -16,11 +16,11 @@ const app = express();
 
 app.use(morgan("dev"));
 app.use(express.static(DIR_PUBLIC));
-app.use("/downloaded", express.static(DIR_DOWNLOAD));
+app.use("/api/downloaded", express.static(DIR_DOWNLOAD));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.post("/download", (req, res) => {
+app.post("/api/download", (req, res) => {
   try {
     const [parsedURL, filename] = downloader.add(req.body.url);
     res.status(200).send([parsedURL, filename]);
@@ -29,7 +29,7 @@ app.post("/download", (req, res) => {
   }
 });
 
-app.get("/status", (req, res) => {
+app.get("/api/status", (req, res) => {
   let { offset, limit } = req.query;
 
   const queue = downloader.getQueue();
@@ -39,12 +39,12 @@ app.get("/status", (req, res) => {
   res.status(200).send({ queue, current, files });
 });
 
-app.get("/update", async (req, res) => {
+app.get("/api/update", async (req, res) => {
   const result = await downloader.updateWrongNamedFiles();
   res.status(200).send(result);
 });
 
-app.get("/thumbnail/:filename", async (req, res) => {
+app.get("/api/thumbnail/:filename", async (req, res) => {
   const { filename } = req.params;
   try {
     const thumbnail = await downloader.getThumbnail(filename);
