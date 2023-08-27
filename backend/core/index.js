@@ -96,7 +96,7 @@ async function createThumbnailImage(filepath) {
     throw new Error("File is not valid");
 
   const { stdout, stderr } = await exec(
-    `ffmpeg -i ${filepath} -ss 00:00:00.000 -vframes 1 ${thumbnailPath}`
+    `ffmpeg -i ${filepath} -ss 00:00:00.000 -vframes 1 -filter:v scale='min(280\\,iw):-1' ${thumbnailPath}`
   );
   console.log("stdout:", stdout);
   console.log("stderr:", stderr);
