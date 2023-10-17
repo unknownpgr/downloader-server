@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import API from "../api";
 import { Pages } from "../Pagination";
-import { Link, useSearchParams } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom";
 
 const N = 10;
 
@@ -17,7 +17,9 @@ function App() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isBlurThumbnail, setIsBlurThumbnail] = useState(true);
   const page = Number(searchParams.get("page")) || 1;
-  const setPage = (page: number) => { setSearchParams({ page: String(page) }); };
+  const setPage = (page: number) => {
+    setSearchParams({ page: String(page) });
+  };
   const load = useCallback(async () => {
     const status = await API.getStatus({ offset: (page - 1) * N });
     setStatus(status);
@@ -64,18 +66,19 @@ function App() {
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={(e) => {
             e.key === "Enter" && handleDownload();
-          }}
-        ></input>
-        <button onClick={handleDownload}
-          className="bg-slate-600 rounded-full px-4 py-1 text-white font-medium ml-2"
-        >
+          }}></input>
+        <button
+          onClick={handleDownload}
+          className="bg-slate-600 rounded-full px-4 py-1 text-white font-medium ml-2">
           Download
         </button>
       </div>
       {queue.length > 0 && (
         <>
           <hr className="my-2" />
-          <h2 className="text-2xl font-medium mb-2 mt-4">Downloading Files ({queue.length})</h2>
+          <h2 className="text-2xl font-medium mb-2 mt-4">
+            Downloading Files ({queue.length})
+          </h2>
           <div>
             {queue.map((x) => (
               <div key={x}>{x}</div>
@@ -88,8 +91,7 @@ function App() {
         <h2 className="text-2xl font-medium">Downloaded Files</h2>
         <button
           onClick={() => setIsBlurThumbnail((x) => !x)}
-          className="bg-slate-600 rounded-full px-4 py-1 text-white font-medium ml-2"
-        >
+          className="bg-slate-600 rounded-full px-4 py-1 text-white font-medium ml-2">
           {isBlurThumbnail ? "Show" : "Hide"} thumbnail
         </button>
       </div>
@@ -98,16 +100,12 @@ function App() {
         {downloaded.map(({ filename, date }) => {
           return (
             <Link to={`/viewer/${filename}`}>
-              <div
-                key={filename}
-                className="w-64 border rounded"
-              >
+              <div key={filename} className="w-64 border rounded">
                 <div
                   className="bg-gray-200 h-52 flex justify-center"
                   style={{
-                    overflow: "hidden"
-                  }}
-                >
+                    overflow: "hidden",
+                  }}>
                   <img
                     src={`/api/thumbnail/${filename}`}
                     alt="thumbnail"
@@ -132,9 +130,9 @@ function App() {
       </div>
       <Pages max={pageMax} value={page} onChange={setPage} />
       <div className="my-4 flex justify-center">
-        <button onClick={handleUpdate}
-          className="bg-slate-600 rounded-full px-4 py-1 text-white font-medium mb-4"
-        >
+        <button
+          onClick={handleUpdate}
+          className="bg-slate-600 rounded-full px-4 py-1 text-white font-medium mb-4">
           Update
         </button>
       </div>
